@@ -1,0 +1,16 @@
+[run]
+init_cmds = [
+	["make", "build-dev"],
+	["./luban"]
+]
+watch_all = true
+watch_dirs = [
+	"models",
+	"modules",
+	"routers"
+]
+watch_exts = [".go"]
+cmds = [
+	["make", "build-dev"],
+	["./luban"]
+]
