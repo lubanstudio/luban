@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/lubanstudio/luban/models"
 	"github.com/lubanstudio/luban/modules/context"
@@ -73,14 +74,19 @@ func UpdateMatrix(ctx *context.Context) {
 
 func HeartBeat(ctx *context.Context) {
 	isIdle := ctx.Req.Header.Get("X-LUBAN-STATUS") == "IDLE"
-	if isIdle {
+	if isIdle && ctx.Builder.TaskID > 0 {
+		isIdle = false
 		task, err := models.GetTaskByID(ctx.Builder.TaskID)
 		if err != nil {
 			ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
 			return
 		}
+		ctx.Resp.Header().Set("X-LUBAN-TASK", "ASSIGN")
 		ctx.JSON(200, map[string]interface{}{
-			"clone_url": setting.Project.CloneURL,
+			"import_path":  setting.Project.ImportPath,
+			"pack_root":    setting.Project.PackRoot,
+			"pack_entries": setting.Project.PackEntries,
+			"pack_formats": setting.Project.PackFormats,
 			"task": map[string]interface{}{
 				"id":     task.ID,
 				"os":     task.OS,
@@ -94,6 +100,29 @@ func HeartBeat(ctx *context.Context) {
 	if err := ctx.Builder.HeartBeat(isIdle); err != nil {
 		ctx.Error(500, fmt.Sprintf("HeartBeat: %v", err))
 		return
+	}
+
+	switch ctx.Req.Header.Get("X-LUBAN-STATUS") {
+	case "FAILED":
+		task, err := models.GetTaskByID(ctx.Builder.TaskID)
+		if err != nil {
+			ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
+			return
+		}
+
+		task.Status = models.TASK_STATUS_FAILED
+		task.Updated = time.Now().Unix()
+		if err = task.Save(); err != nil {
+			ctx.Error(500, fmt.Sprintf("Save: %v", err))
+			return
+		}
+
+		ctx.Builder.IsIdle = true
+		ctx.Builder.TaskID = 0
+		if err = ctx.Builder.Save(); err != nil {
+			ctx.Error(500, fmt.Sprintf("Save: %v", err))
+			return
+		}
 	}
 
 	if ctx.Written() {

@@ -31,7 +31,7 @@ type TaskStatus int
 
 const (
 	TASK_STATUS_PENDING TaskStatus = iota
-	TASK_STATUS_RUNNING
+	TASK_STATUS_BUILDING
 	TASK_STATUS_UPLOADING
 	TASK_STATUS_FAILED
 	TASK_STATUS_SUCCEED
@@ -41,8 +41,8 @@ func (s TaskStatus) ToString() string {
 	switch s {
 	case TASK_STATUS_PENDING:
 		return "Pending"
-	case TASK_STATUS_RUNNING:
-		return "Running"
+	case TASK_STATUS_BUILDING:
+		return "Building"
 	case TASK_STATUS_UPLOADING:
 		return "Uploading"
 	case TASK_STATUS_FAILED:
@@ -79,13 +79,19 @@ func (t *Task) CreatedTime() time.Time {
 	return time.Unix(t.Created, 0)
 }
 
+func (t *Task) Save() error {
+	return x.Save(t).Error
+}
+
 func (t *Task) AssignBuilder(builderID int64) (err error) {
 	tx := x.Begin()
 	defer releaseTransaction(tx)
 
 	t.BuilderID = builderID
-	t.Status = TASK_STATUS_RUNNING
-	if err = tx.Exec("UPDATE builders SET is_idle = ? AND task_id = ? WHERE id = ?", false, t.ID, builderID).Error; err != nil {
+	t.Status = TASK_STATUS_BUILDING
+	t.Updated = time.Now().Unix()
+	fmt.Println("task id", t.ID, builderID)
+	if err = tx.Exec("UPDATE builders SET is_idle = ?,task_id = ? WHERE id = ?", false, t.ID, builderID).Error; err != nil {
 		return fmt.Errorf("set builder to busy: %v", err)
 	} else if err = tx.Save(t).Error; err != nil {
 		return fmt.Errorf("save task: %v", err)
@@ -109,6 +115,7 @@ func NewTask(doerID int64, os, arch string, tags []string, branch string) (*Task
 		return nil, ErrNoSuitableMatrix{os, arch, tags}
 	}
 
+	fmt.Println("git", "ls-remote", setting.Project.CloneURL, branch)
 	// Get latest commit ID on given branch.
 	stdout, stderr, err := com.ExecCmd("git", "ls-remote", setting.Project.CloneURL, branch)
 	if err != nil {

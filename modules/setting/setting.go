@@ -39,9 +39,13 @@ var (
 	}
 
 	Project struct {
-		Name     string
-		CloneURL string `ini:"CLONE_URL"`
-		Branches []string
+		Name        string
+		CloneURL    string `ini:"CLONE_URL"`
+		ImportPath  string
+		Branches    []string
+		PackRoot    string
+		PackEntries []string
+		PackFormats []string
 	}
 
 	Cfg *ini.File
