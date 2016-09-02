@@ -16,6 +16,7 @@ package models
 
 import (
 	"fmt"
+	"strings"
 )
 
 type ErrBuilderExists struct {
@@ -29,4 +30,19 @@ func IsErrBuilderExists(err error) bool {
 
 func (err ErrBuilderExists) Error() string {
 	return fmt.Sprintf("Builder already exists [name: %s]", err.Name)
+}
+
+type ErrNoSuitableMatrix struct {
+	OS   string
+	Arch string
+	Tags []string
+}
+
+func IsErrNoSuitableMatrix(err error) bool {
+	_, ok := err.(ErrNoSuitableMatrix)
+	return ok
+}
+
+func (err ErrNoSuitableMatrix) Error() string {
+	return fmt.Sprintf("no suitable matrix for the task [os: %s, arch: %s, tags: %s]", err.OS, err.Arch, strings.Join(err.Tags, ","))
 }

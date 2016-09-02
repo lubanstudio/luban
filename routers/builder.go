@@ -24,7 +24,6 @@ import (
 
 func Builders(ctx *context.Context) {
 	ctx.Data["Title"] = "Builders"
-	ctx.Data["PageIsBuilder"] = true
 
 	builders, err := models.ListBuilders()
 	if err != nil {
@@ -38,13 +37,11 @@ func Builders(ctx *context.Context) {
 
 func NewBuilder(ctx *context.Context) {
 	ctx.Data["Title"] = "New Builder"
-	ctx.Data["PageIsBuilder"] = true
 	ctx.HTML(200, "builder/new")
 }
 
 func NewBuilderPost(ctx *context.Context, form form.NewBuilder) {
 	ctx.Data["Title"] = "New Builder"
-	ctx.Data["PageIsBuilder"] = true
 
 	if ctx.HasError() {
 		ctx.HTML(200, "builder/new")
@@ -86,7 +83,6 @@ func EditBuilder(ctx *context.Context) {
 	ctx.Data["Builder"] = builder
 
 	ctx.Data["Title"] = builder.Name + " - Builder"
-	ctx.Data["PageIsBuilder"] = true
 	ctx.HTML(200, "builder/edit")
 }
 

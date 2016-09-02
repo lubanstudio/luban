@@ -15,12 +15,68 @@
 package routers
 
 import (
+	"fmt"
+
+	"github.com/lubanstudio/luban/models"
 	"github.com/lubanstudio/luban/modules/context"
+	"github.com/lubanstudio/luban/modules/form"
 )
 
 func Tasks(ctx *context.Context) {
 	ctx.Data["Title"] = "Tasks"
-	ctx.Data["PageIsTask"] = true
+
+	tasks, err := models.ListTasks()
+	if err != nil {
+		ctx.Handle(500, "ListTasks", err)
+		return
+	}
+	ctx.Data["Tasks"] = tasks
 
 	ctx.HTML(200, "task/list")
+}
+
+func NewTask(ctx *context.Context) {
+	ctx.Data["Title"] = "New Task"
+	form.AssignForm(form.NewTask{}, ctx.Data)
+	ctx.HTML(200, "task/new")
+}
+
+func NewTaskPost(ctx *context.Context, form form.NewTask) {
+	ctx.Data["Title"] = "New Task"
+
+	if ctx.HasError() {
+		ctx.HTML(200, "task/new")
+		return
+	}
+
+	task, err := models.NewTask(ctx.User.ID, form.OS, form.Arch, form.Tags, form.Branch)
+	if err != nil {
+		if models.IsErrNoSuitableMatrix(err) {
+			ctx.Data["Err_OS"] = true
+			ctx.Data["Err_Arch"] = true
+			ctx.Data["Err_Tags"] = true
+			ctx.RenderWithErr(fmt.Sprintf("Fail to create task: %v", err), "task/new", form)
+		} else {
+			ctx.Handle(500, "NewTask", err)
+		}
+		return
+	}
+
+	ctx.Redirect(fmt.Sprintf("/tasks/%d", task.ID))
+}
+
+func ViewTask(ctx *context.Context) {
+	task, err := models.GetTaskByID(ctx.ParamsInt64(":id"))
+	if err != nil {
+		if models.IsErrRecordNotFound(err) {
+			ctx.NotFound()
+		} else {
+			ctx.Handle(500, "GetTaskByID", err)
+		}
+		return
+	}
+	ctx.Data["Title"] = task.ID
+
+	ctx.Data["Task"] = task
+	ctx.HTML(200, "task/view")
 }

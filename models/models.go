@@ -35,7 +35,7 @@ func init() {
 	}
 
 	if err = x.Set("gorm:table_options", "ENGINE=InnoDB").
-		AutoMigrate(new(User), new(Builder), new(Matrix)).Error; err != nil {
+		AutoMigrate(new(User), new(Builder), new(Matrix), new(Task)).Error; err != nil {
 		log.Fatalf("Fail to auto migrate database: %s", err)
 	}
 }

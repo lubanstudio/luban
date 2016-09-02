@@ -17,9 +17,12 @@ package routers
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/lubanstudio/luban/models"
 	"github.com/lubanstudio/luban/modules/context"
+	"github.com/lubanstudio/luban/modules/setting"
 )
 
 func RequireBuilderToken(ctx *context.Context) {
@@ -42,11 +45,25 @@ func UpdateMatrix(ctx *context.Context) {
 		return
 	}
 
-	matrices := make([]*models.Matrix, 0, 2)
-	if err = json.Unmarshal(data, &matrices); err != nil {
+	rawMatrices := make([]*setting.Matrix, 0, 3)
+	if err = json.Unmarshal(data, &rawMatrices); err != nil {
 		ctx.Error(500, fmt.Sprintf("json.Unmarshal: %v", err))
 		return
-	} else if err = ctx.Builder.UpdateMatrices(matrices); err != nil {
+	}
+
+	matrices := make([]*models.Matrix, 0, 5)
+	for _, raw := range rawMatrices {
+		sort.Strings(raw.Tags)
+		for _, arch := range raw.Archs {
+			matrices = append(matrices, &models.Matrix{
+				OS:   raw.OS,
+				Arch: arch,
+				Tags: strings.Join(raw.Tags, ","),
+			})
+		}
+	}
+
+	if err = ctx.Builder.UpdateMatrices(matrices); err != nil {
 		ctx.Error(500, fmt.Sprintf("UpdateMatrices: %v", err))
 		return
 	}
@@ -55,10 +72,32 @@ func UpdateMatrix(ctx *context.Context) {
 }
 
 func HeartBeat(ctx *context.Context) {
-	if err := ctx.Builder.HeartBeat(ctx.Req.Header.Get("X-LUBAN-STATUS") == "IDLE"); err != nil {
+	isIdle := ctx.Req.Header.Get("X-LUBAN-STATUS") == "IDLE"
+	if isIdle {
+		task, err := models.GetTaskByID(ctx.Builder.TaskID)
+		if err != nil {
+			ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
+			return
+		}
+		ctx.JSON(200, map[string]interface{}{
+			"clone_url": setting.Project.CloneURL,
+			"task": map[string]interface{}{
+				"id":     task.ID,
+				"os":     task.OS,
+				"arch":   task.Arch,
+				"tags":   task.Tags,
+				"commit": task.Commit,
+			},
+		})
+	}
+
+	if err := ctx.Builder.HeartBeat(isIdle); err != nil {
 		ctx.Error(500, fmt.Sprintf("HeartBeat: %v", err))
 		return
 	}
 
+	if ctx.Written() {
+		return
+	}
 	ctx.Status(204)
 }

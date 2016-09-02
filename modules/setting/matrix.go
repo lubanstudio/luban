@@ -18,14 +18,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+
+	"github.com/Unknwon/com"
 )
 
-var Matrices []*Matrix
+var (
+	Matrices     []*Matrix
+	AllowedOSs   []string
+	AllowedArchs []string
+	AllowedTags  []string
+)
 
 type Matrix struct {
-	OS   string   `json:"os"`
-	Arch string   `json:"arch"`
-	Tags []string `json:"tags"`
+	OS    string   `json:"os"`
+	Archs []string `json:"archs"`
+	Tags  []string `json:"tags"`
 }
 
 func LoadMatrices() error {
@@ -36,6 +43,24 @@ func LoadMatrices() error {
 
 	if err = json.Unmarshal(data, &Matrices); err != nil {
 		return fmt.Errorf("Unmarshal: %v", err)
+	}
+
+	for _, m := range Matrices {
+		if !com.IsSliceContainsStr(AllowedOSs, m.OS) {
+			AllowedOSs = append(AllowedOSs, m.OS)
+		}
+
+		for _, arch := range m.Archs {
+			if !com.IsSliceContainsStr(AllowedArchs, arch) {
+				AllowedArchs = append(AllowedArchs, arch)
+			}
+		}
+
+		for _, tag := range m.Tags {
+			if !com.IsSliceContainsStr(AllowedTags, tag) {
+				AllowedTags = append(AllowedTags, tag)
+			}
+		}
 	}
 
 	return nil

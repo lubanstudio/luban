@@ -38,6 +38,12 @@ var (
 		ClientSecret string
 	}
 
+	Project struct {
+		Name     string
+		CloneURL string `ini:"CLONE_URL"`
+		Branches []string
+	}
+
 	Cfg *ini.File
 )
 
@@ -65,6 +71,8 @@ func init() {
 		log.Fatalf("Fail to map section 'database': %s", err)
 	} else if err = Cfg.Section("oauth2").MapTo(&OAuth2); err != nil {
 		log.Fatalf("Fail to map section 'oauth2': %s", err)
+	} else if err = Cfg.Section("project").MapTo(&Project); err != nil {
+		log.Fatalf("Fail to map section 'project': %s", err)
 	}
 
 	if err = LoadMatrices(); err != nil {

@@ -47,3 +47,8 @@ func UpdateBuilderMatrices(builderID int64, matrices []*Matrix) error {
 func (b *Builder) UpdateMatrices(matrices []*Matrix) error {
 	return UpdateBuilderMatrices(b.ID, matrices)
 }
+
+func FindMatrices(os, arch string) ([]*Matrix, error) {
+	matrices := make([]*Matrix, 0, 10)
+	return matrices, x.Where("os = ? AND arch= ?", os, arch).Find(&matrices).Error
+}

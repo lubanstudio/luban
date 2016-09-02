@@ -25,6 +25,7 @@ import (
 	goauth2 "golang.org/x/oauth2"
 	"gopkg.in/macaron.v1"
 
+	"github.com/lubanstudio/luban/models"
 	"github.com/lubanstudio/luban/modules/context"
 	"github.com/lubanstudio/luban/modules/form"
 	"github.com/lubanstudio/luban/modules/setting"
@@ -32,7 +33,7 @@ import (
 	"github.com/lubanstudio/luban/routers"
 )
 
-const APP_VER = "0.3.2.0902"
+const APP_VER = "0.4.0.0902"
 
 func init() {
 	setting.AppVer = APP_VER
@@ -66,6 +67,19 @@ func main() {
 
 		m.Group("/tasks", func() {
 			m.Get("", routers.Tasks)
+
+			m.Group("", func() {
+				m.Combo("/new", func(ctx *context.Context) {
+					ctx.Data["AllowedOSs"] = setting.AllowedOSs
+					ctx.Data["AllowedArchs"] = setting.AllowedArchs
+					ctx.Data["AllowedTags"] = setting.AllowedTags
+					ctx.Data["AllowedBranches"] = setting.Project.Branches
+				}).Get(routers.NewTask).Post(bindIgnErr(form.NewTask{}), routers.NewTaskPost)
+
+				m.Get("/:id", routers.ViewTask)
+			})
+		}, func(ctx *context.Context) {
+			ctx.Data["PageIsTask"] = true
 		})
 
 		m.Group("/builders", func() {
@@ -80,6 +94,8 @@ func main() {
 					m.Post("/delete", routers.DeleteBuilder)
 				})
 			}, context.ReqAdmin())
+		}, func(ctx *context.Context) {
+			ctx.Data["PageIsBuilder"] = true
 		})
 	}, oauth2.LoginRequired)
 
@@ -91,6 +107,8 @@ func main() {
 	})
 
 	m.NotFound(context.NotFound)
+
+	go models.AssignTasks()
 
 	listenAddr := fmt.Sprintf("0.0.0.0:%d", setting.HTTPPort)
 	log.Println("Listening on", listenAddr)

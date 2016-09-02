@@ -18,6 +18,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 
+	"github.com/Unknwon/com"
 	"github.com/satori/go.uuid"
 )
 
@@ -31,4 +32,13 @@ func EncodeSHA1(str string) string {
 // NewSecretToekn generates and returns a random secret token based on SHA1.
 func NewSecretToekn() string {
 	return EncodeSHA1(uuid.NewV4().String())
+}
+
+// Int64sToStrings converts a slice of int64 to a slice of string.
+func Int64sToStrings(ints []int64) []string {
+	strs := make([]string, len(ints))
+	for i := range ints {
+		strs[i] = com.ToStr(ints[i])
+	}
+	return strs
 }

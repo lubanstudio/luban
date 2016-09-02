@@ -6,11 +6,15 @@
 	  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 	  <link rel="shortcut icon" href="/img/luban.png" />
 
-
 		<link rel="stylesheet" href="/assets/bootstrap-3.3.5/css/bootstrap.min.css">
 		<link rel="stylesheet" href="/assets/font-awesome-4.5.0/css/font-awesome.min.css">
-		<link rel="stylesheet" href="/assets/AdminLTE-2.3.2/css/AdminLTE.min.css">
-		<link rel="stylesheet" href="/assets/AdminLTE-2.3.2/css/skins/skin-black-light.min.css">
+		
+		<!-- Plugins -->
+		<link rel="stylesheet" href="/plugins/select2/select2.min.css">
+
+		<link rel="stylesheet" href="/assets/AdminLTE-2.3.6/css/AdminLTE.min.css">
+		<link rel="stylesheet" href="/assets/AdminLTE-2.3.6/css/skins/skin-black-light.min.css">
+
 	  <title>{{.Title}} - Luban</title>
 	</head>
 
@@ -49,7 +53,7 @@
 			      	<a href="/"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a>
 			      </li>
 			      <li {{if .PageIsTask}}class="active"{{end}}>
-			      	<a href="/tasks"><i class="fa fa-gg"></i> <span>Tasks</span></a>
+			      	<a href="/tasks"><i class="fa fa-gg"></i> <span>Build Tasks</span></a>
 			      </li>
 			      <li {{if .PageIsBuilder}}class="active"{{end}}>
 			      	<a href="/builders"><i class="fa fa-steam"></i> <span>Builders</span></a>

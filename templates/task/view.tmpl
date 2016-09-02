@@ -1,0 +1,59 @@
+{{template "base/head" .}}
+<section class="content-header">
+	<h1>
+    <i class="fa fa-gg"></i> Build Tasks
+	</h1>
+</section>
+<section class="content">
+	<div class="row">
+	  <div class="col-xs-12">
+	  	<div class="box box-primary">
+        <div class="box-header with-border">
+          <h3 class="box-title">Task <b>{{.Task.ID}}</b></h3>
+        </div>
+        <div class="form-horizontal" method="post">
+          <div class="box-body">
+          	{{template "base/alert" .}}
+            <div class="form-group">
+              <label class="col-sm-2">OS</label>
+              <span>{{.Task.OS}}</span>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2">Arch</label>
+              <span>{{.Task.Arch}}</span>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2">Tags</label>
+              <span>{{if .Task.Tags}}{{.Task.Tags}}{{else}}{no tags}{{end}}</span>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2">Commit</label>
+              <span>{{.Task.Commit}}</span>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2">Status</label>
+              <span>{{.Task.Status.ToString}}</span>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2">Poster</label>
+              <span>{{.Task.PosterID}}</span>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2">Builder</label>
+              <span>{{if .Task.BuilderID}}{{.Task.BuilderID}}{{else}}{not assigned yet}{{end}}</span>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2">Created</label>
+              <span>{{.Task.CreatedTime}}</span>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2">Last Updated</label>
+              <span>{{if .Task.Updated}}{{.Task.UpdatedTime}}{{else}}{never updated}{{end}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+	  </div>
+	</div>
+</section>
+{{template "base/footer" .}}

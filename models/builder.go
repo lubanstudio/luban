@@ -15,7 +15,11 @@
 package models
 
 import (
+	"fmt"
+	"strings"
 	"time"
+
+	"github.com/Unknwon/com"
 
 	"github.com/lubanstudio/luban/modules/tool"
 )
@@ -58,6 +62,8 @@ type Builder struct {
 	IsIdle        bool `gorm:"NOT NULL"`
 	LastHeartBeat int64
 	Created       int64
+
+	TaskID int64
 }
 
 func (b *Builder) BeforeCreate() {
@@ -133,4 +139,33 @@ func RegenerateBuilderToken(id int64) error {
 // TODO: delete building history and matrices
 func DeleteBuilderByID(id int64) error {
 	return x.Delete(new(Builder), id).Error
+}
+
+func MatchBuilders(os, arch string, tags []string) ([]int64, error) {
+	matrices, err := FindMatrices(os, arch)
+	if err != nil {
+		return nil, fmt.Errorf("FindBuilders: %v", err)
+	}
+	if len(matrices) == 0 {
+		return nil, ErrNoSuitableMatrix{os, arch, tags}
+	}
+
+	marked := make(map[int64]bool)
+	builderIDs := make([]int64, 0, 5)
+CHECK_TAG:
+	for _, m := range matrices {
+		supportTags := strings.Split(m.Tags, ",")
+
+		for _, tag := range tags {
+			if !com.IsSliceContainsStr(supportTags, tag) {
+				continue CHECK_TAG
+			}
+		}
+
+		if !marked[m.BuilderID] {
+			marked[m.BuilderID] = true
+			builderIDs = append(builderIDs, m.BuilderID)
+		}
+	}
+	return builderIDs, nil
 }
