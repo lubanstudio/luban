@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+	<head>
+	  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+	  <link rel="shortcut icon" href="/img/luban.png" />
+
+
+		<link rel="stylesheet" href="/assets/bootstrap-3.3.5/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/assets/font-awesome-4.5.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="/assets/AdminLTE-2.3.2/css/AdminLTE.min.css">
+		<link rel="stylesheet" href="/assets/AdminLTE-2.3.2/css/skins/skin-black-light.min.css">
+	  <title>{{.Title}} - Luban</title>
+	</head>
+
+	<body class="skin-black-light sidebar-mini">
+		<div class="wrapper">
+			<header class="main-header">
+		    <a href="/" class="logo">
+		    	<span class="logo-mini"><img src="/img/luban.png" style="height: 30px"></span>
+		    	<span class="logo-lg"><img src="/img/luban-brand.png" style="height: 45px"></span>
+		    </a>
+
+		    <nav class="navbar navbar-static-top" role="navigation">
+		      <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+		        <span class="sr-only">Toggle navigation</span>
+		      </a>
+		      <div class="navbar-custom-menu">
+		      	<nav class="nav navbar-nav">
+		      	{{if .IsSigned}}
+			      	<li class="user user-menu">
+				      	<a href="/dashboard">
+		              <img src="{{.User.AvatarURL}}" class="user-image">
+		              <span class="hidden-xs">{{.User.Username}}</span>
+				      	</a>
+	          	</li>
+          	{{end}}
+		      	</nav>
+		      </div>
+		    </nav>
+			</header>
+
+			<div class="main-sidebar">
+			  <div class="sidebar">
+			    <ul class="sidebar-menu">
+			      <li class="header">Control Center</li>
+			      <li {{if .PageIsDashboard}}class="active"{{end}}>
+			      	<a href="/"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a>
+			      </li>
+			      <li {{if .PageIsTask}}class="active"{{end}}>
+			      	<a href="/tasks"><i class="fa fa-gg"></i> <span>Tasks</span></a>
+			      </li>
+			      <li {{if .PageIsBuilder}}class="active"{{end}}>
+			      	<a href="/builders"><i class="fa fa-steam"></i> <span>Builders</span></a>
+			      </li>
+			    </ul>
+			  </div>
+			</div>
+
+			<div class="content-wrapper">
+				

@@ -1,0 +1,31 @@
+{{template "base/head" .}}
+<section class="content-header">
+	<h1>
+    <i class="fa fa-steam"></i> Builders
+	</h1>
+</section>
+<section class="content">
+	<div class="row">
+	  <div class="col-xs-12">
+	  	<div class="box box-primary">
+        <div class="box-header with-border">
+          <h3 class="box-title">New Builder</h3>
+        </div>
+        <form method="post">
+          <div class="box-body">
+          	{{template "base/alert" .}}
+            <div class="form-group {{if .Err_Name}}has-error{{end}}">
+              <label for="name">Name</label>
+              <input class="form-control" id="name" name="name" value="{{.name}}" placeholder="Name of builder" autofocus required>
+            </div>
+          </div>
+
+          <div class="box-footer">
+            <button type="submit" class="btn btn-primary">Create</button>
+          </div>
+        </form>
+      </div>
+	  </div>
+	</div>
+</section>
+{{template "base/footer" .}}

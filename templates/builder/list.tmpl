@@ -1,0 +1,51 @@
+{{template "base/head" .}}
+<section class="content-header">
+	<h1>
+	  <i class="fa fa-steam"></i> Builders
+	</h1>
+</section>
+<section class="content">
+	<div class="row">
+	  <div class="col-xs-12">
+	    <div class="box">
+	      <div class="box-header">
+	        <h3 class="box-title">Builders</h3>
+	        {{if .User.IsAdmin}}
+	        <div class="box-tools">
+	        	<a class="btn btn-primary btn-sm" href="/builders/new">New Builder</a>
+          </div>
+          {{end}}
+	      </div>
+	      <div class="box-body table-responsive no-padding">
+	        <table class="table table-hover">
+	          <tbody>
+		          <tr>
+		            <th>ID</th>
+		            <th>Name</th>
+		            <th>Trust Level</th>
+		            <th>Status</th>
+		            <th class="hidden-xs">Created</th>
+		            {{if .User.IsAdmin}}
+		            <th width="50px">Op.</th>
+		            {{end}}
+		          </tr>
+		          {{range .Builders}}
+			          <tr>
+			            <td>{{.ID}}</td>
+			            <td>{{.Name}}</td>
+			            <td>{{.TrustLevel.ToString}}</td>
+			            <td>{{.Status}}</td>
+			            <td class="hidden-xs">{{DateFmtShort .CreatedTime}}</td>
+			            {{if $.User.IsAdmin}}
+			            <td><a href="/builders/{{.ID}}/edit"><i class="fa fa-pencil"></i></a></td>
+			            {{end}}
+			          </tr>
+		          {{end}}
+	        	</tbody>
+	        </table>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+</section>
+{{template "base/footer" .}}

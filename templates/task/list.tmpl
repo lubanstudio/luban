@@ -1,0 +1,51 @@
+{{template "base/head" .}}
+<section class="content-header">
+	<h1>
+	  <i class="fa fa-gg"></i> Tasks
+	</h1>
+</section>
+<section class="content">
+	<div class="row">
+	  <div class="col-xs-12">
+	    <div class="box">
+	      <div class="box-header">
+	        <h3 class="box-title">Tasks</h3>
+	        <div class="box-tools">
+	        	<a class="btn btn-primary btn-sm" href="/tasks/new">New Task</a>
+          </div>
+	      </div>
+	      <div class="box-body table-responsive no-padding">
+	        <table class="table table-hover">
+	          <tbody>
+		          <tr>
+		            <th>ID</th>
+		            <th>OS</th>
+		            <th>Arch</th>
+		            <th>Tags</th>
+		            <th class="hidden-xs">Commit</th>
+		            <th>Status</th>
+		            {{if .User.IsAdmin}}
+		            <th width="50px">Op.</th>
+		            {{end}}
+		          </tr>
+		          {{range .Tasks}}
+			          <tr>
+			            <td>{{.ID}}</td>
+			            <td>{{.OS}}</td>
+			            <td>{{.Arch}}</td>
+			            <td>{{.Tags}}</td>
+			            <td class="hidden-xs">{{.CommitSHA}}</td>
+			            <td>{{.Status}}</td>
+			            {{if $.User.IsAdmin}}
+			            <td><a href="/tasks/{{.ID}}/cancel"><i class="fa fa-x"></i></a></td>
+			            {{end}}
+			          </tr>
+		          {{end}}
+	        	</tbody>
+	        </table>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+</section>
+{{template "base/footer" .}}

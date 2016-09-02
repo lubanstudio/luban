@@ -1,3 +1,3 @@
 ![](public/img/luban-brand.png)
 
-Luban is an on-demand distributed task building dispatcher.
+Luban is an on-demand building tasks dispatcher.
