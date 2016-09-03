@@ -172,6 +172,8 @@ func UploadArtifact(ctx *context.Context) {
 		ctx.Error(500, fmt.Sprintf("FormFile: %v", err))
 		return
 	}
+	defer fr.Close()
+
 	if _, err = io.Copy(fw, fr); err != nil {
 		ctx.Error(500, fmt.Sprintf("Copy: %v", err))
 		return
