@@ -152,7 +152,7 @@ func UploadArtifact(ctx *context.Context) {
 		return
 	}
 
-	if err = ctx.Req.ParseMultipartForm(1 << 20); err != nil {
+	if err = ctx.Req.ParseMultipartForm(1024 * 1024 * 32); err != nil {
 		ctx.Error(500, fmt.Sprintf("ParseMultipartForm: %v", err))
 		return
 	}

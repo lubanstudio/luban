@@ -206,7 +206,7 @@ func CountTasks() int64 {
 func AssignTasks() {
 	defer func() {
 		log.Trace("Finish assigning tasks.")
-		time.AfterFunc(60*time.Second, AssignTasks)
+		time.AfterFunc(30*time.Second, AssignTasks)
 	}()
 
 	log.Trace("Start assigning tasks...")

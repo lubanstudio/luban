@@ -33,7 +33,7 @@ import (
 	"github.com/lubanstudio/luban/routers"
 )
 
-const APP_VER = "0.5.0.0903"
+const APP_VER = "0.5.1.0903"
 
 func init() {
 	setting.AppVer = APP_VER
@@ -98,10 +98,11 @@ func main() {
 			ctx.Data["PageIsBuilder"] = true
 		})
 
-		m.Get("/artifacts/:name", func(ctx *context.Context) {
-			http.ServeFile(ctx.Resp, ctx.Req.Request, "data/artifacts/"+ctx.Params(":name"))
-		})
 	}, oauth2.LoginRequired)
+
+	m.Get("/artifacts/:name", func(ctx *context.Context) {
+		http.ServeFile(ctx.Resp, ctx.Req.Request, "data/artifacts/"+ctx.Params(":name"))
+	})
 
 	m.Group("/api/v1", func() {
 		m.Group("/builder", func() {
