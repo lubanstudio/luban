@@ -17,10 +17,10 @@ package models
 import (
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 
+	"github.com/lubanstudio/luban/modules/log"
 	"github.com/lubanstudio/luban/modules/setting"
 )
 
@@ -31,12 +31,18 @@ func init() {
 	x, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=true",
 		setting.Database.User, setting.Database.Password, setting.Database.Host, setting.Database.Name))
 	if err != nil {
-		log.Fatalf("Fail to connect database: %s", err)
+		log.Fatal(4, "Fail to connect database: %s", err)
 	}
 
 	if err = x.Set("gorm:table_options", "ENGINE=InnoDB").
 		AutoMigrate(new(User), new(Builder), new(Matrix), new(Task)).Error; err != nil {
-		log.Fatalf("Fail to auto migrate database: %s", err)
+		log.Fatal(4, "Fail to auto migrate database: %s", err)
+	}
+}
+
+func releaseTransaction(tx *gorm.DB) {
+	if tx.Error != nil {
+		tx.Rollback()
 	}
 }
 
@@ -44,8 +50,8 @@ func IsErrRecordNotFound(err error) bool {
 	return err == gorm.ErrRecordNotFound
 }
 
-func releaseTransaction(tx *gorm.DB) {
-	if tx.Error != nil {
-		tx.Rollback()
-	}
+func Count(bean interface{}) int64 {
+	var count int64
+	x.Model(bean).Count(&count)
+	return count
 }

@@ -24,7 +24,7 @@ func Dashboard(ctx *context.Context) {
 	ctx.Data["PageIsDashboard"] = true
 
 	ctx.Data["NumBuilders"] = models.CountBuilders()
-	ctx.Data["NumTasks"] = 0
+	ctx.Data["NumTasks"] = models.CountTasks()
 
 	ctx.HTML(200, "dashboard")
 }

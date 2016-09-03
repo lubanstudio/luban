@@ -20,9 +20,9 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/Unknwon/com"
 
+	"github.com/lubanstudio/luban/modules/log"
 	"github.com/lubanstudio/luban/modules/setting"
 	"github.com/lubanstudio/luban/modules/tool"
 )
@@ -79,6 +79,14 @@ func (t *Task) CreatedTime() time.Time {
 	return time.Unix(t.Created, 0)
 }
 
+func (t *Task) ArtifactName(format string) string {
+	name := setting.Project.PackRoot + "_" + t.Commit[:10]
+	if len(t.Tags) > 0 {
+		name += "_" + strings.Replace(t.Tags, ",", "_", -1)
+	}
+	return name + "." + format
+}
+
 func (t *Task) Save() error {
 	return x.Save(t).Error
 }
@@ -90,7 +98,6 @@ func (t *Task) AssignBuilder(builderID int64) (err error) {
 	t.BuilderID = builderID
 	t.Status = TASK_STATUS_BUILDING
 	t.Updated = time.Now().Unix()
-	fmt.Println("task id", t.ID, builderID)
 	if err = tx.Exec("UPDATE builders SET is_idle = ?,task_id = ? WHERE id = ?", false, t.ID, builderID).Error; err != nil {
 		return fmt.Errorf("set builder to busy: %v", err)
 	} else if err = tx.Save(t).Error; err != nil {
@@ -98,6 +105,38 @@ func (t *Task) AssignBuilder(builderID int64) (err error) {
 	}
 
 	return tx.Commit().Error
+}
+
+func (t *Task) buildFinish(status TaskStatus) error {
+	builder, err := GetBuilderByID(t.BuilderID)
+	if err != nil {
+		return fmt.Errorf("GetBuilderByID: %v", err)
+	}
+
+	tx := x.Begin()
+	defer releaseTransaction(tx)
+
+	t.Status = status
+	t.Updated = time.Now().Unix()
+	if err = tx.Save(t).Error; err != nil {
+		return fmt.Errorf("Save.(task): %v", err)
+	}
+
+	builder.IsIdle = true
+	builder.TaskID = 0
+	if err = tx.Save(builder).Error; err != nil {
+		return fmt.Errorf("Save.(builder): %v", err)
+	}
+
+	return tx.Commit().Error
+}
+
+func (t *Task) BuildFailed() error {
+	return t.buildFinish(TASK_STATUS_FAILED)
+}
+
+func (t *Task) BuildSucceed() error {
+	return t.buildFinish(TASK_STATUS_SUCCEED)
 }
 
 func NewTask(doerID int64, os, arch string, tags []string, branch string) (*Task, error) {
@@ -128,8 +167,8 @@ func NewTask(doerID int64, os, arch string, tags []string, branch string) (*Task
 
 	// Check to prevent duplicated tasks.
 	task := new(Task)
-	if err = x.Where("os = ? AND arch = ? AND tags = ? AND commit = ?",
-		os, arch, strings.Join(tags, ","), commit).First(task).Error; err == nil {
+	if err = x.Where("os = ? AND arch = ? AND tags = ? AND commit = ? AND status != ?",
+		os, arch, strings.Join(tags, ","), commit, TASK_STATUS_FAILED).First(task).Error; err == nil {
 		return task, nil
 	} else if !IsErrRecordNotFound(err) {
 		return nil, fmt.Errorf("check existing task: %v", err)
@@ -152,7 +191,7 @@ func GetTaskByID(id int64) (*Task, error) {
 
 func ListTasks() ([]*Task, error) {
 	tasks := make([]*Task, 0, 10)
-	return tasks, x.Find(&tasks).Error
+	return tasks, x.Order("id DESC").Find(&tasks).Error
 }
 
 func ListPendingTasks() ([]*Task, error) {
@@ -160,16 +199,20 @@ func ListPendingTasks() ([]*Task, error) {
 	return tasks, x.Where("status = ?", TASK_STATUS_PENDING).Find(&tasks).Error
 }
 
+func CountTasks() int64 {
+	return Count(new(Task))
+}
+
 func AssignTasks() {
 	defer func() {
-		log.Debugln("Finish assigning tasks.")
+		log.Trace("Finish assigning tasks.")
 		time.AfterFunc(60*time.Second, AssignTasks)
 	}()
 
-	log.Debugln("Start assigning tasks...")
+	log.Trace("Start assigning tasks...")
 	tasks, err := ListPendingTasks()
 	if err != nil {
-		log.Errorf("ListPendingTasks: %v", err)
+		log.Error(4, "ListPendingTasks: %v", err)
 		return
 	}
 
@@ -181,7 +224,7 @@ func AssignTasks() {
 		builderIDs, err := MatchBuilders(t.OS, t.Arch, tags)
 		if err != nil {
 			if !IsErrNoSuitableMatrix(err) {
-				log.Errorf("MatchBuilders [task_id: %d]: %v", t.ID, err)
+				log.Error(4, "MatchBuilders [task_id: %d]: %v", t.ID, err)
 			}
 			continue
 		}
@@ -189,14 +232,16 @@ func AssignTasks() {
 		builder := new(Builder)
 		if err = x.Where("is_idle = ? AND id IN (?)", true, tool.Int64sToStrings(builderIDs)).First(builder).Error; err != nil {
 			if !IsErrRecordNotFound(err) {
-				log.Errorf("find idle builder [task_id: %s]: %v", t.ID, err)
+				log.Error(4, "find idle builder [task_id: %s]: %v", t.ID, err)
 			}
 			continue
 		}
 
 		if err = t.AssignBuilder(builder.ID); err != nil {
-			log.Errorf("AssignBuilder [task_id: %s, builder_id: %d]: %v", t.ID, builder.ID, err)
+			log.Error(4, "AssignBuilder [task_id: %s, builder_id: %d]: %v", t.ID, builder.ID, err)
 			continue
 		}
+
+		log.Trace("Assigned task '%d' to builder '%d'", t.ID, builder.ID)
 	}
 }

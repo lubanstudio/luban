@@ -17,13 +17,13 @@ package context
 import (
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/go-macaron/oauth2"
 	"github.com/go-macaron/session"
 	"gopkg.in/macaron.v1"
 
-	"github.com/Unknwon/orbiter/modules/form"
 	"github.com/lubanstudio/luban/models"
+	"github.com/lubanstudio/luban/modules/form"
+	"github.com/lubanstudio/luban/modules/log"
 )
 
 type Context struct {
@@ -70,7 +70,7 @@ func (ctx *Context) NotFound() {
 // Handle handles and logs error by given status.
 func (ctx *Context) Handle(status int, title string, err error) {
 	if err != nil {
-		log.Printf("%s: %v", title, err)
+		log.Error(4, "%s: %v", title, err)
 		if macaron.Env != macaron.PROD {
 			ctx.Data["ErrorMsg"] = err
 		}
@@ -102,7 +102,7 @@ func Contexter() macaron.Handler {
 			ctx.Data["IsSigned"] = true
 			ctx.Data["User"] = user
 
-			log.Debug("Authenticated user: ", user.Username)
+			log.Trace("Authenticated user: %s", user.Username)
 		}
 	}
 }

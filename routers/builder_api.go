@@ -17,12 +17,15 @@ package routers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"path"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/lubanstudio/luban/models"
 	"github.com/lubanstudio/luban/modules/context"
+	"github.com/lubanstudio/luban/modules/log"
 	"github.com/lubanstudio/luban/modules/setting"
 )
 
@@ -73,60 +76,106 @@ func UpdateMatrix(ctx *context.Context) {
 }
 
 func HeartBeat(ctx *context.Context) {
-	isIdle := ctx.Req.Header.Get("X-LUBAN-STATUS") == "IDLE"
-	if isIdle && ctx.Builder.TaskID > 0 {
-		isIdle = false
-		task, err := models.GetTaskByID(ctx.Builder.TaskID)
-		if err != nil {
-			ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
-			return
-		}
-		ctx.Resp.Header().Set("X-LUBAN-TASK", "ASSIGN")
-		ctx.JSON(200, map[string]interface{}{
-			"import_path":  setting.Project.ImportPath,
-			"pack_root":    setting.Project.PackRoot,
-			"pack_entries": setting.Project.PackEntries,
-			"pack_formats": setting.Project.PackFormats,
-			"task": map[string]interface{}{
-				"id":     task.ID,
-				"os":     task.OS,
-				"arch":   task.Arch,
-				"tags":   task.Tags,
-				"commit": task.Commit,
-			},
-		})
-	}
+	status := ctx.Req.Header.Get("X-LUBAN-STATUS")
+	log.Trace("Hearrbeat from builder '%d': %s", ctx.Builder.ID, status)
 
-	if err := ctx.Builder.HeartBeat(isIdle); err != nil {
+	isIdle := status == "IDLE"
+	if err := ctx.Builder.HeartBeat(isIdle && ctx.Builder.TaskID == 0); err != nil {
 		ctx.Error(500, fmt.Sprintf("HeartBeat: %v", err))
 		return
 	}
 
-	switch ctx.Req.Header.Get("X-LUBAN-STATUS") {
-	case "FAILED":
-		task, err := models.GetTaskByID(ctx.Builder.TaskID)
-		if err != nil {
-			ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
-			return
-		}
+	if isIdle {
+		// Response assgined task to builder if it's idle.
+		if ctx.Builder.TaskID > 0 {
+			isIdle = false
+			task, err := models.GetTaskByID(ctx.Builder.TaskID)
+			if err != nil {
+				ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
+				return
+			}
 
-		task.Status = models.TASK_STATUS_FAILED
-		task.Updated = time.Now().Unix()
+			ctx.Resp.Header().Set("X-LUBAN-TASK", "ASSIGN")
+			ctx.JSON(200, map[string]interface{}{
+				"import_path":  setting.Project.ImportPath,
+				"pack_root":    setting.Project.PackRoot,
+				"pack_entries": setting.Project.PackEntries,
+				"pack_formats": setting.Project.PackFormats,
+				"task": map[string]interface{}{
+					"id":     task.ID,
+					"os":     task.OS,
+					"arch":   task.Arch,
+					"tags":   task.Tags,
+					"commit": task.Commit,
+				},
+			})
+		} else {
+			ctx.Status(204)
+		}
+		return
+	}
+
+	task, err := models.GetTaskByID(ctx.Builder.TaskID)
+	if err != nil {
+		ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
+		return
+	}
+
+	switch status {
+	case "UPLOADING":
+		task.Status = models.TASK_STATUS_UPLOADING
 		if err = task.Save(); err != nil {
 			ctx.Error(500, fmt.Sprintf("Save: %v", err))
 			return
 		}
-
-		ctx.Builder.IsIdle = true
-		ctx.Builder.TaskID = 0
-		if err = ctx.Builder.Save(); err != nil {
-			ctx.Error(500, fmt.Sprintf("Save: %v", err))
+	case "FAILED":
+		if err = task.BuildFailed(); err != nil {
+			ctx.Error(500, fmt.Sprintf("BuildFailed: %v", err))
+			return
+		}
+	case "SUCCEED":
+		if err = task.BuildSucceed(); err != nil {
+			ctx.Error(500, fmt.Sprintf("BuildSucceed: %v", err))
 			return
 		}
 	}
 
-	if ctx.Written() {
+	ctx.Status(204)
+}
+
+func UploadArtifact(ctx *context.Context) {
+	log.Trace("Receiving artifact from builder '%d' for task '%d'", ctx.Builder.ID, ctx.Builder.TaskID)
+
+	task, err := models.GetTaskByID(ctx.Builder.TaskID)
+	if err != nil {
+		ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
 		return
 	}
+
+	if err = ctx.Req.ParseMultipartForm(1 << 20); err != nil {
+		ctx.Error(500, fmt.Sprintf("ParseMultipartForm: %v", err))
+		return
+	}
+
+	savePath := path.Join("data/artifacts", task.ArtifactName(ctx.Req.Header.Get("X-LUBAN-FORMAT")))
+	os.MkdirAll(path.Dir(savePath), os.ModePerm)
+
+	fw, err := os.Create(savePath)
+	if err != nil {
+		ctx.Error(500, fmt.Sprintf("Create: %v", err))
+		return
+	}
+	defer fw.Close()
+
+	fr, _, err := ctx.Req.FormFile("artifact")
+	if err != nil {
+		ctx.Error(500, fmt.Sprintf("FormFile: %v", err))
+		return
+	}
+	if _, err = io.Copy(fw, fr); err != nil {
+		ctx.Error(500, fmt.Sprintf("Copy: %v", err))
+		return
+	}
+
 	ctx.Status(204)
 }

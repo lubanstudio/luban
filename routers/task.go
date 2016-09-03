@@ -20,6 +20,7 @@ import (
 	"github.com/lubanstudio/luban/models"
 	"github.com/lubanstudio/luban/modules/context"
 	"github.com/lubanstudio/luban/modules/form"
+	"github.com/lubanstudio/luban/modules/setting"
 )
 
 func Tasks(ctx *context.Context) {
@@ -77,6 +78,7 @@ func ViewTask(ctx *context.Context) {
 	}
 	ctx.Data["Title"] = task.ID
 
+	ctx.Data["PackFormats"] = setting.Project.PackFormats
 	ctx.Data["Task"] = task
 	ctx.HTML(200, "task/view")
 }

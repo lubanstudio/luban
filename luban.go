@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/go-macaron/binding"
 	"github.com/go-macaron/oauth2"
 	"github.com/go-macaron/session"
@@ -28,19 +27,20 @@ import (
 	"github.com/lubanstudio/luban/models"
 	"github.com/lubanstudio/luban/modules/context"
 	"github.com/lubanstudio/luban/modules/form"
+	"github.com/lubanstudio/luban/modules/log"
 	"github.com/lubanstudio/luban/modules/setting"
 	"github.com/lubanstudio/luban/modules/template"
 	"github.com/lubanstudio/luban/routers"
 )
 
-const APP_VER = "0.4.0.0902"
+const APP_VER = "0.5.0.0903"
 
 func init() {
 	setting.AppVer = APP_VER
 }
 
 func main() {
-	log.Printf("Luban %s", APP_VER)
+	log.Info("Luban %s", APP_VER)
 
 	m := macaron.Classic()
 	m.Use(macaron.Renderer(macaron.RenderOptions{
@@ -97,12 +97,17 @@ func main() {
 		}, func(ctx *context.Context) {
 			ctx.Data["PageIsBuilder"] = true
 		})
+
+		m.Get("/artifacts/:name", func(ctx *context.Context) {
+			http.ServeFile(ctx.Resp, ctx.Req.Request, "data/artifacts/"+ctx.Params(":name"))
+		})
 	}, oauth2.LoginRequired)
 
 	m.Group("/api/v1", func() {
 		m.Group("/builder", func() {
 			m.Post("/matrix", routers.UpdateMatrix)
 			m.Post("/heartbeat", routers.HeartBeat)
+			m.Post("/upload/artifact", routers.UploadArtifact)
 		}, routers.RequireBuilderToken)
 	})
 
@@ -111,6 +116,6 @@ func main() {
 	go models.AssignTasks()
 
 	listenAddr := fmt.Sprintf("0.0.0.0:%d", setting.HTTPPort)
-	log.Println("Listening on", listenAddr)
-	log.Fatal(http.ListenAndServe(listenAddr, m))
+	log.Info("Listening on %s", listenAddr)
+	log.Fatal(4, "Fail to start server: %v", http.ListenAndServe(listenAddr, m))
 }

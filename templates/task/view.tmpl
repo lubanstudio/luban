@@ -50,6 +50,15 @@
               <label class="col-sm-2">Last Updated</label>
               <span>{{if .Task.Updated}}{{.Task.UpdatedTime}}{{else}}{never updated}{{end}}</span>
             </div>
+
+            {{if eq .Task.Status 4}}
+            <div class="form-group">
+              <label class="col-sm-2">Artifacts</label>
+              {{range .PackFormats}}
+              <a href="/artifacts/{{$.Task.ArtifactName .}}">{{$.Task.ArtifactName .}}</a><br>
+              {{end}}
+            </div>
+            {{end}}
           </div>
         </div>
       </div>

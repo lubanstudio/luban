@@ -15,9 +15,10 @@
 package setting
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/Unknwon/com"
 	"gopkg.in/ini.v1"
+
+	"github.com/lubanstudio/luban/modules/log"
 )
 
 var (
@@ -52,34 +53,31 @@ var (
 )
 
 func init() {
+	log.NewLogger(1000, log.CONSOLE, `{"level":0}`)
 	var err error
 	Cfg, err = ini.Load("conf/app.ini")
 	if err != nil {
-		log.Fatalf("Fail to load configuration: %s", err)
+		log.Fatal(4, "Fail to load configuration: %s", err)
 	}
 	if com.IsFile("custom/app.ini") {
 		if err = Cfg.Append("custom/app.ini"); err != nil {
-			log.Fatalf("Fail to load custom configuration: %s", err)
+			log.Fatal(4, "Fail to load custom configuration: %s", err)
 		}
 	}
 	Cfg.NameMapper = ini.AllCapsUnderscore
 
 	RunMode = Cfg.Section("").Key("RUN_MODE").String()
-	if RunMode != "prod" {
-		log.SetLevel(log.DebugLevel)
-	}
-
 	HTTPPort = Cfg.Section("").Key("HTTP_PORT").MustInt(8086)
 
 	if err = Cfg.Section("database").MapTo(&Database); err != nil {
-		log.Fatalf("Fail to map section 'database': %s", err)
+		log.Fatal(4, "Fail to map section 'database': %s", err)
 	} else if err = Cfg.Section("oauth2").MapTo(&OAuth2); err != nil {
-		log.Fatalf("Fail to map section 'oauth2': %s", err)
+		log.Fatal(4, "Fail to map section 'oauth2': %s", err)
 	} else if err = Cfg.Section("project").MapTo(&Project); err != nil {
-		log.Fatalf("Fail to map section 'project': %s", err)
+		log.Fatal(4, "Fail to map section 'project': %s", err)
 	}
 
 	if err = LoadMatrices(); err != nil {
-		log.Fatalf("LoadMatrices: %s", err)
+		log.Fatal(4, "LoadMatrices: %s", err)
 	}
 }

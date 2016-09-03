@@ -127,9 +127,7 @@ func ListBuilders() ([]*Builder, error) {
 }
 
 func CountBuilders() int64 {
-	var count int64
-	x.Model(new(Builder)).Count(&count)
-	return count
+	return Count(new(Builder))
 }
 
 func RegenerateBuilderToken(id int64) error {
