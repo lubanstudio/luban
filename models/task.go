@@ -80,7 +80,7 @@ func (t *Task) CreatedTime() time.Time {
 }
 
 func (t *Task) ArtifactName(format string) string {
-	name := setting.Project.PackRoot + "_" + t.Commit[:10]
+	name := setting.Project.PackRoot + "_" + t.Commit[:10] + "_" + t.OS + "_" + t.Arch
 	if len(t.Tags) > 0 {
 		name += "_" + strings.Replace(t.Tags, ",", "_", -1)
 	}
