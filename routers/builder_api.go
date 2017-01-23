@@ -91,7 +91,7 @@ func HeartBeat(ctx *context.Context) {
 			isIdle = false
 			task, err := models.GetTaskByID(ctx.Builder.TaskID)
 			if err != nil {
-				ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
+				ctx.Error(500, fmt.Sprintf("GetTaskByID [%d]: %v", ctx.Builder.TaskID, err))
 				return
 			}
 
