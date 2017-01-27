@@ -67,18 +67,16 @@ func NewTaskPost(ctx *context.Context, form form.NewTask) {
 }
 
 func ViewTask(ctx *context.Context) {
-	task, err := models.GetTaskByID(ctx.ParamsInt64(":id"))
-	if err != nil {
-		if models.IsErrRecordNotFound(err) {
-			ctx.NotFound()
-		} else {
-			ctx.Handle(500, "GetTaskByID", err)
-		}
+	ctx.Data["Title"] = ctx.Task.ID
+	ctx.Data["PackFormats"] = setting.Project.PackFormats
+	ctx.HTML(200, "task/view")
+}
+
+func ArchiveTask(ctx *context.Context) {
+	if err := ctx.Task.Archive(); err != nil {
+		ctx.RenderWithErr(fmt.Sprintf("Fail to archive task: %v", err), "task/view", nil)
 		return
 	}
-	ctx.Data["Title"] = task.ID
 
-	ctx.Data["PackFormats"] = setting.Project.PackFormats
-	ctx.Data["Task"] = task
-	ctx.HTML(200, "task/view")
+	ctx.Redirect(fmt.Sprintf("/tasks/%d", ctx.Task.ID))
 }

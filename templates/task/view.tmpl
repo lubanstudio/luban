@@ -28,7 +28,7 @@
             </div>
             <div class="form-group">
               <label class="col-sm-2">Commit</label>
-              <span>{{.Task.Commit}}</span>
+              <span><a href="{{.Task.CommitURL}}" target="_blank">{{.Task.Commit}}</a></span>
             </div>
             <div class="form-group">
               <label class="col-sm-2">Status</label>
@@ -52,12 +52,19 @@
             </div>
 
             {{if eq .Task.Status 4}}
-            <div class="form-group">
-              <label class="col-sm-2">Artifacts</label>
-              {{range .PackFormats}}
-              <a href="/artifacts/{{$.Task.ArtifactName .}}">{{$.Task.ArtifactName .}}</a><br>
+              <div class="form-group">
+                <label class="col-sm-2">Artifacts</label>
+                {{range .PackFormats}}
+                <a href="/artifacts/{{$.Task.ArtifactName .}}">{{$.Task.ArtifactName .}}</a><br>
+                {{end}}
+              </div>
+
+              {{if .User.IsAdmin}}
+                <div class="form-group">
+                  <label class="col-sm-2"></label>
+                  <a class="btn btn-danger" href="{{.Link}}/archive">Archive Task</a>
+                </div>
               {{end}}
-            </div>
             {{end}}
           </div>
         </div>

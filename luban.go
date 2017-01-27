@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"path"
 
 	"github.com/go-macaron/binding"
 	"github.com/go-macaron/oauth2"
@@ -33,7 +34,7 @@ import (
 	"github.com/lubanstudio/luban/routers"
 )
 
-const APP_VER = "0.5.3.0126"
+const APP_VER = "0.5.5.0127"
 
 func init() {
 	setting.AppVer = APP_VER
@@ -76,7 +77,22 @@ func main() {
 					ctx.Data["AllowedBranches"] = setting.Project.Branches
 				}).Get(routers.NewTask).Post(bindIgnErr(form.NewTask{}), routers.NewTaskPost)
 
-				m.Get("/:id", routers.ViewTask)
+				m.Group("/:id", func() {
+					m.Get("", routers.ViewTask)
+					m.Get("/archive", context.ReqAdmin(), routers.ArchiveTask)
+				}, func(ctx *context.Context) {
+					task, err := models.GetTaskByID(ctx.ParamsInt64(":id"))
+					if err != nil {
+						if models.IsErrRecordNotFound(err) {
+							ctx.NotFound()
+						} else {
+							ctx.Handle(500, "GetTaskByID", err)
+						}
+						return
+					}
+					ctx.Task = task
+					ctx.Data["Task"] = ctx.Task
+				})
 			})
 		}, func(ctx *context.Context) {
 			ctx.Data["PageIsTask"] = true
@@ -101,7 +117,7 @@ func main() {
 	}, oauth2.LoginRequired)
 
 	m.Get("/artifacts/:name", func(ctx *context.Context) {
-		http.ServeFile(ctx.Resp, ctx.Req.Request, "data/artifacts/"+ctx.Params(":name"))
+		http.ServeFile(ctx.Resp, ctx.Req.Request, path.Join(setting.ArtifactsPath, ctx.Params(":name")))
 	})
 
 	m.Group("/api/v1", func() {

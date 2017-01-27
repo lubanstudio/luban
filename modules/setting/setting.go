@@ -25,7 +25,8 @@ var (
 	AppVer  string
 	RunMode string
 
-	HTTPPort int
+	HTTPPort      int
+	ArtifactsPath string
 
 	Database struct {
 		Host     string
@@ -42,6 +43,7 @@ var (
 	Project struct {
 		Name        string
 		CloneURL    string `ini:"CLONE_URL"`
+		CommitURL   string `ini:"COMMIT_URL"`
 		ImportPath  string
 		Branches    []string
 		PackRoot    string
@@ -68,6 +70,7 @@ func init() {
 
 	RunMode = Cfg.Section("").Key("RUN_MODE").String()
 	HTTPPort = Cfg.Section("").Key("HTTP_PORT").MustInt(8086)
+	ArtifactsPath = Cfg.Section("").Key("ARTIFACTS_PATH").MustString("data/artifacts")
 
 	if err = Cfg.Section("database").MapTo(&Database); err != nil {
 		log.Fatal(4, "Fail to map section 'database': %s", err)

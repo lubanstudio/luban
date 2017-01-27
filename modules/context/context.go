@@ -16,6 +16,7 @@ package context
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/go-macaron/oauth2"
 	"github.com/go-macaron/session"
@@ -33,6 +34,7 @@ type Context struct {
 
 	User    *models.User
 	Builder *models.Builder
+	Task    *models.Task
 }
 
 // HasError returns true if error occurs in form validation.
@@ -91,6 +93,8 @@ func Contexter() macaron.Handler {
 			Session: sess,
 		}
 		c.Map(ctx)
+
+		ctx.Data["Link"] = strings.TrimSuffix(ctx.Req.URL.Path, "/")
 
 		if ctx.Session.Get(oauth2.KEY_TOKEN) != nil {
 			user, err := models.GetOrCreateUserByOAuthID(tokens.Access())

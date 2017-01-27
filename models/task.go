@@ -16,6 +16,8 @@ package models
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"sort"
 	"strings"
 	"time"
@@ -35,6 +37,7 @@ const (
 	TASK_STATUS_UPLOADING
 	TASK_STATUS_FAILED
 	TASK_STATUS_SUCCEED
+	TASK_STATUS_ARCHIVED TaskStatus = 99
 )
 
 func (s TaskStatus) ToString() string {
@@ -49,6 +52,8 @@ func (s TaskStatus) ToString() string {
 		return "Failed"
 	case TASK_STATUS_SUCCEED:
 		return "Succeed"
+	case TASK_STATUS_ARCHIVED:
+		return "Archived"
 	}
 	return "Unapproved"
 }
@@ -77,6 +82,10 @@ func (t *Task) UpdatedTime() time.Time {
 
 func (t *Task) CreatedTime() time.Time {
 	return time.Unix(t.Created, 0)
+}
+
+func (t *Task) CommitURL() string {
+	return com.Expand(setting.Project.CommitURL, map[string]string{"sha": t.Commit})
 }
 
 func (t *Task) ArtifactName(format string) string {
@@ -137,6 +146,18 @@ func (t *Task) BuildFailed() error {
 
 func (t *Task) BuildSucceed() error {
 	return t.buildFinish(TASK_STATUS_SUCCEED)
+}
+
+func (t *Task) Archive() error {
+	t.Status = TASK_STATUS_ARCHIVED
+	if err := t.Save(); err != nil {
+		return err
+	}
+
+	for _, format := range setting.Project.PackFormats {
+		os.Remove(path.Join(setting.ArtifactsPath, t.ArtifactName(format)))
+	}
+	return nil
 }
 
 func NewTask(doerID int64, os, arch string, tags []string, branch string) (*Task, error) {

@@ -31,7 +31,7 @@
 			            <td>{{.OS}}</td>
 			            <td>{{.Arch}}</td>
 			            <td>{{if .Tags}}{{.Tags}}{{else}}{no tag}{{end}}</td>
-			            <td class="hidden-xs">{{.Commit}}</td>
+			            <td class="hidden-xs"><a href="{{.CommitURL}}" target="_blank">{{.Commit}}</a></td>
 			            <td>{{.Status.ToString}}</td>
 			          </tr>
 		          {{end}}
