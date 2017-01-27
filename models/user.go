@@ -72,6 +72,14 @@ func GetOrCreateUserByGitHubID(oauthID, githubID, username, avatarURL string) (*
 		}
 	}
 
+	// Make the first user be admin
+	if Count(new(User)) == 1 {
+		user.IsAdmin = true
+		if err = x.Save(user).Error; err != nil {
+			return nil, fmt.Errorf("set user as admin: %v", err)
+		}
+	}
+
 	return user, nil
 }
 
