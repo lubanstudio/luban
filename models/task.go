@@ -188,8 +188,8 @@ func NewTask(doerID int64, os, arch string, tags []string, branch string) (*Task
 
 	// Check to prevent duplicated tasks.
 	task := new(Task)
-	if err = x.Where("os = ? AND arch = ? AND tags = ? AND commit = ? AND status != ?",
-		os, arch, strings.Join(tags, ","), commit, TASK_STATUS_FAILED).First(task).Error; err == nil {
+	if err = x.Where("os=? AND arch=? AND tags=? AND commit=? AND status!=? AND status!=?",
+		os, arch, strings.Join(tags, ","), commit, TASK_STATUS_FAILED, TASK_STATUS_ARCHIVED).First(task).Error; err == nil {
 		return task, nil
 	} else if !IsErrRecordNotFound(err) {
 		return nil, fmt.Errorf("check existing task: %v", err)
