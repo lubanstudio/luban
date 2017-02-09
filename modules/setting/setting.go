@@ -15,10 +15,12 @@
 package setting
 
 import (
-	"github.com/Unknwon/com"
-	"gopkg.in/ini.v1"
+	"fmt"
+	"os"
 
-	"github.com/lubanstudio/luban/modules/log"
+	"github.com/Unknwon/com"
+	log "gopkg.in/clog.v1"
+	"gopkg.in/ini.v1"
 )
 
 var (
@@ -55,8 +57,12 @@ var (
 )
 
 func init() {
-	log.NewLogger(1000, log.CONSOLE, `{"level":0}`)
-	var err error
+	err := log.New(log.CONSOLE, log.ConsoleConfig{})
+	if err != nil {
+		fmt.Printf("Fail to create new logger: %v\n", err)
+		os.Exit(1)
+	}
+
 	Cfg, err = ini.Load("conf/app.ini")
 	if err != nil {
 		log.Fatal(4, "Fail to load configuration: %s", err)
@@ -69,6 +75,20 @@ func init() {
 	Cfg.NameMapper = ini.AllCapsUnderscore
 
 	RunMode = Cfg.Section("").Key("RUN_MODE").String()
+	if RunMode == "prod" {
+		if err := log.New(log.FILE, log.FileConfig{
+			Level:    log.INFO,
+			Filename: "log/luban.log",
+			FileRotationConfig: log.FileRotationConfig{
+				Daily:   true,
+				MaxDays: 3,
+			},
+		}); err != nil {
+			log.Fatal(0, "Fail to create new logger: %v", err)
+		}
+		log.Delete(log.CONSOLE)
+	}
+
 	HTTPPort = Cfg.Section("").Key("HTTP_PORT").MustInt(8086)
 	ArtifactsPath = Cfg.Section("").Key("ARTIFACTS_PATH").MustString("data/artifacts")
 

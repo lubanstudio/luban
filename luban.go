@@ -23,18 +23,18 @@ import (
 	"github.com/go-macaron/oauth2"
 	"github.com/go-macaron/session"
 	goauth2 "golang.org/x/oauth2"
+	log "gopkg.in/clog.v1"
 	"gopkg.in/macaron.v1"
 
 	"github.com/lubanstudio/luban/models"
 	"github.com/lubanstudio/luban/modules/context"
 	"github.com/lubanstudio/luban/modules/form"
-	"github.com/lubanstudio/luban/modules/log"
 	"github.com/lubanstudio/luban/modules/setting"
 	"github.com/lubanstudio/luban/modules/template"
 	"github.com/lubanstudio/luban/routers"
 )
 
-const APP_VER = "0.5.6.0130"
+const APP_VER = "0.5.7.0208"
 
 func init() {
 	setting.AppVer = APP_VER

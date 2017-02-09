@@ -23,9 +23,10 @@ import (
 	"sort"
 	"strings"
 
+	log "gopkg.in/clog.v1"
+
 	"github.com/lubanstudio/luban/models"
 	"github.com/lubanstudio/luban/modules/context"
-	"github.com/lubanstudio/luban/modules/log"
 	"github.com/lubanstudio/luban/modules/setting"
 )
 

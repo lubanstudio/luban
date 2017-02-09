@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/Unknwon/com"
+	log "gopkg.in/clog.v1"
 
-	"github.com/lubanstudio/luban/modules/log"
 	"github.com/lubanstudio/luban/modules/setting"
 	"github.com/lubanstudio/luban/modules/tool"
 )

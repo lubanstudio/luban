@@ -20,11 +20,11 @@ import (
 
 	"github.com/go-macaron/oauth2"
 	"github.com/go-macaron/session"
+	log "gopkg.in/clog.v1"
 	"gopkg.in/macaron.v1"
 
 	"github.com/lubanstudio/luban/models"
 	"github.com/lubanstudio/luban/modules/form"
-	"github.com/lubanstudio/luban/modules/log"
 )
 
 type Context struct {
