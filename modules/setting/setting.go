@@ -24,8 +24,8 @@ import (
 )
 
 var (
-	AppVer  string
-	RunMode string
+	AppVer   string
+	ProdMode bool
 
 	HTTPPort      int
 	ArtifactsPath string
@@ -74,12 +74,13 @@ func init() {
 	}
 	Cfg.NameMapper = ini.AllCapsUnderscore
 
-	RunMode = Cfg.Section("").Key("RUN_MODE").String()
-	if RunMode == "prod" {
+	ProdMode = Cfg.Section("").Key("RUN_MODE").String() == "prod"
+	if ProdMode {
 		if err := log.New(log.FILE, log.FileConfig{
 			Level:    log.INFO,
 			Filename: "log/luban.log",
 			FileRotationConfig: log.FileRotationConfig{
+				Rotate:  true,
 				Daily:   true,
 				MaxDays: 3,
 			},

@@ -34,7 +34,7 @@ import (
 	"github.com/lubanstudio/luban/routers"
 )
 
-const APP_VER = "0.5.7.0208"
+const APP_VER = "0.5.8.0209"
 
 func init() {
 	setting.AppVer = APP_VER
@@ -43,7 +43,14 @@ func init() {
 func main() {
 	log.Info("Luban %s", APP_VER)
 
-	m := macaron.Classic()
+	m := macaron.New()
+	if !setting.ProdMode {
+		m.Use(macaron.Logger())
+	}
+	m.Use(macaron.Recovery())
+	m.Use(macaron.Static("public", macaron.StaticOptions{
+		SkipLogging: setting.ProdMode,
+	}))
 	m.Use(macaron.Renderer(macaron.RenderOptions{
 		Funcs:      template.NewFuncMap(),
 		IndentJSON: macaron.Env != macaron.PROD,

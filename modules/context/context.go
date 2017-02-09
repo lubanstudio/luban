@@ -97,7 +97,7 @@ func Contexter() macaron.Handler {
 		ctx.Data["Link"] = strings.TrimSuffix(ctx.Req.URL.Path, "/")
 
 		if ctx.Session.Get(oauth2.KEY_TOKEN) != nil {
-			user, err := models.GetOrCreateUserByOAuthID(tokens.Access())
+			user, isNew, err := models.GetOrCreateUserByOAuthID(tokens.Access())
 			if err != nil {
 				ctx.Handle(500, "GetOrCreateUserByOAuthID", err)
 				return
@@ -106,7 +106,11 @@ func Contexter() macaron.Handler {
 			ctx.Data["IsSigned"] = true
 			ctx.Data["User"] = user
 
-			log.Trace("Authenticated user: %s", user.Username)
+			if isNew {
+				log.Info("New user authenticated: %s", user.Username)
+			} else {
+				log.Trace("Authenticated user: %s", user.Username)
+			}
 		}
 	}
 }
