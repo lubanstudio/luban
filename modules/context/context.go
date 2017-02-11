@@ -70,7 +70,7 @@ func (ctx *Context) NotFound() {
 }
 
 func (ctx *Context) Error(format string, a ...interface{}) {
-	log.Error(4, format, a...)
+	log.Error(3, format, a...)
 	ctx.Context.Error(500, fmt.Sprintf(format, a...))
 }
 
