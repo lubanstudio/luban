@@ -16,7 +16,6 @@ package routers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"path"
@@ -37,7 +36,7 @@ func RequireBuilderToken(ctx *context.Context) {
 		if models.IsErrRecordNotFound(err) {
 			ctx.Status(403)
 		} else {
-			ctx.Error(500, fmt.Sprintf("GetBuilderByToken: %v", err))
+			ctx.Error("GetBuilderByToken: %v", err)
 		}
 		return
 	}
@@ -46,13 +45,13 @@ func RequireBuilderToken(ctx *context.Context) {
 func UpdateMatrix(ctx *context.Context) {
 	data, err := ctx.Req.Body().Bytes()
 	if err != nil {
-		ctx.Error(500, fmt.Sprintf("Req.Body().Bytes: %v", err))
+		ctx.Error("Req.Body().Bytes: %v", err)
 		return
 	}
 
 	rawMatrices := make([]*setting.Matrix, 0, 3)
 	if err = json.Unmarshal(data, &rawMatrices); err != nil {
-		ctx.Error(500, fmt.Sprintf("json.Unmarshal: %v", err))
+		ctx.Error("json.Unmarshal: %v", err)
 		return
 	}
 
@@ -69,7 +68,7 @@ func UpdateMatrix(ctx *context.Context) {
 	}
 
 	if err = ctx.Builder.UpdateMatrices(matrices); err != nil {
-		ctx.Error(500, fmt.Sprintf("UpdateMatrices: %v", err))
+		ctx.Error("UpdateMatrices: %v", err)
 		return
 	}
 
@@ -82,7 +81,8 @@ func HeartBeat(ctx *context.Context) {
 
 	isIdle := status == "IDLE"
 	if err := ctx.Builder.HeartBeat(isIdle && ctx.Builder.TaskID == 0); err != nil {
-		ctx.Error(500, fmt.Sprintf("HeartBeat: %v", err))
+		log.Error(4, "HeartBeat [%d]: %v", ctx.Builder.ID, err)
+		ctx.Error("HeartBeat: %v", err)
 		return
 	}
 
@@ -92,7 +92,7 @@ func HeartBeat(ctx *context.Context) {
 			isIdle = false
 			task, err := models.GetTaskByID(ctx.Builder.TaskID)
 			if err != nil {
-				ctx.Error(500, fmt.Sprintf("GetTaskByID [%d]: %v", ctx.Builder.TaskID, err))
+				ctx.Error("GetTaskByID [%d]: %v", ctx.Builder.TaskID, err)
 				return
 			}
 
@@ -118,7 +118,7 @@ func HeartBeat(ctx *context.Context) {
 
 	task, err := models.GetTaskByID(ctx.Builder.TaskID)
 	if err != nil {
-		ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
+		ctx.Error("GetTaskByID: %v", err)
 		return
 	}
 
@@ -126,17 +126,17 @@ func HeartBeat(ctx *context.Context) {
 	case "UPLOADING":
 		task.Status = models.TASK_STATUS_UPLOADING
 		if err = task.Save(); err != nil {
-			ctx.Error(500, fmt.Sprintf("Save: %v", err))
+			ctx.Error("Save: %v", err)
 			return
 		}
 	case "FAILED":
 		if err = task.BuildFailed(); err != nil {
-			ctx.Error(500, fmt.Sprintf("BuildFailed: %v", err))
+			ctx.Error("BuildFailed: %v", err)
 			return
 		}
 	case "SUCCEED":
 		if err = task.BuildSucceed(); err != nil {
-			ctx.Error(500, fmt.Sprintf("BuildSucceed: %v", err))
+			ctx.Error("BuildSucceed: %v", err)
 			return
 		}
 	}
@@ -149,12 +149,12 @@ func UploadArtifact(ctx *context.Context) {
 
 	task, err := models.GetTaskByID(ctx.Builder.TaskID)
 	if err != nil {
-		ctx.Error(500, fmt.Sprintf("GetTaskByID: %v", err))
+		ctx.Error("GetTaskByID: %v", err)
 		return
 	}
 
 	if err = ctx.Req.ParseMultipartForm(1024 * 1024 * 32); err != nil {
-		ctx.Error(500, fmt.Sprintf("ParseMultipartForm: %v", err))
+		ctx.Error("ParseMultipartForm: %v", err)
 		return
 	}
 
@@ -163,20 +163,20 @@ func UploadArtifact(ctx *context.Context) {
 
 	fw, err := os.Create(savePath)
 	if err != nil {
-		ctx.Error(500, fmt.Sprintf("Create: %v", err))
+		ctx.Error("Create: %v", err)
 		return
 	}
 	defer fw.Close()
 
 	fr, _, err := ctx.Req.FormFile("artifact")
 	if err != nil {
-		ctx.Error(500, fmt.Sprintf("FormFile: %v", err))
+		ctx.Error("FormFile: %v", err)
 		return
 	}
 	defer fr.Close()
 
 	if _, err = io.Copy(fw, fr); err != nil {
-		ctx.Error(500, fmt.Sprintf("Copy: %v", err))
+		ctx.Error("Copy: %v", err)
 		return
 	}
 

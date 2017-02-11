@@ -69,6 +69,11 @@ func (ctx *Context) NotFound() {
 	NotFound(ctx)
 }
 
+func (ctx *Context) Error(format string, a ...interface{}) {
+	log.Error(4, format, a...)
+	ctx.Context.Error(500, fmt.Sprintf(format, a...))
+}
+
 // Handle handles and logs error by given status.
 func (ctx *Context) Handle(status int, title string, err error) {
 	if err != nil {
