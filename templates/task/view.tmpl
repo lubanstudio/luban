@@ -36,11 +36,11 @@
             </div>
             <div class="form-group">
               <label class="col-sm-2">Poster</label>
-              <span>{{.Task.PosterID}}</span>
+              <span><a target="_blank" href="https://github.com/{{.Task.Poster.Username}}">{{.Task.Poster.Username}}</a></span>
             </div>
             <div class="form-group">
               <label class="col-sm-2">Builder</label>
-              <span>{{if .Task.BuilderID}}{{.Task.BuilderID}}{{else}}{not assigned yet}{{end}}</span>
+              <span>{{if .Task.BuilderID}}{{.Task.Builder.Name}}{{else}}{not assigned yet}{{end}}</span>
             </div>
             <div class="form-group">
               <label class="col-sm-2">Created</label>

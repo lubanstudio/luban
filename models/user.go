@@ -37,6 +37,11 @@ func (u *User) BeforeCreate() {
 	u.Created = time.Now().Unix()
 }
 
+func GetUserByID(id int64) (*User, error) {
+	user := new(User)
+	return user, x.Where("id = ?", id).First(user).Error
+}
+
 func GetUserByGitHubID(githubID string) (*User, error) {
 	user := new(User)
 	return user, x.Where("github_id = ?", githubID).First(user).Error

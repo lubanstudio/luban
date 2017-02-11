@@ -67,13 +67,28 @@ type Task struct {
 	Status TaskStatus
 
 	PosterID  int64
+	Poster    *User `gorm:"-"`
 	BuilderID int64
+	Builder   *Builder `gorm:"-"`
 	Updated   int64
 	Created   int64
 }
 
 func (t *Task) BeforeCreate() {
 	t.Created = time.Now().Unix()
+}
+
+func (t *Task) AfterFind() (err error) {
+	t.Poster, err = GetUserByID(t.PosterID)
+	if err != nil {
+		return fmt.Errorf("GetUserByID [%d]: %v", t.PosterID, err)
+	}
+
+	t.Builder, err = GetBuilderByID(t.BuilderID)
+	if err != nil {
+		return fmt.Errorf("GetBuilderByID [%d]: %v", t.BuilderID, err)
+	}
+	return nil
 }
 
 func (t *Task) UpdatedTime() time.Time {

@@ -34,7 +34,7 @@ import (
 	"github.com/lubanstudio/luban/routers"
 )
 
-const APP_VER = "0.5.8.0209"
+const APP_VER = "0.5.9.0211"
 
 func init() {
 	setting.AppVer = APP_VER
