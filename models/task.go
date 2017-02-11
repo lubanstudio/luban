@@ -79,14 +79,18 @@ func (t *Task) BeforeCreate() {
 }
 
 func (t *Task) AfterFind() (err error) {
-	t.Poster, err = GetUserByID(t.PosterID)
-	if err != nil {
-		return fmt.Errorf("GetUserByID [%d]: %v", t.PosterID, err)
+	if t.PosterID > 0 {
+		t.Poster, err = GetUserByID(t.PosterID)
+		if err != nil {
+			return fmt.Errorf("GetUserByID [%d]: %v", t.PosterID, err)
+		}
 	}
 
-	t.Builder, err = GetBuilderByID(t.BuilderID)
-	if err != nil {
-		return fmt.Errorf("GetBuilderByID [%d]: %v", t.BuilderID, err)
+	if t.BuilderID > 0 {
+		t.Builder, err = GetBuilderByID(t.BuilderID)
+		if err != nil {
+			return fmt.Errorf("GetBuilderByID [%d]: %v", t.BuilderID, err)
+		}
 	}
 	return nil
 }
