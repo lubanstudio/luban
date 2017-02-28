@@ -26,7 +26,7 @@ import (
 func Tasks(ctx *context.Context) {
 	ctx.Data["Title"] = "Tasks"
 
-	tasks, err := models.ListTasks()
+	tasks, err := models.ListTasks(1, 30)
 	if err != nil {
 		ctx.Handle(500, "ListTasks", err)
 		return

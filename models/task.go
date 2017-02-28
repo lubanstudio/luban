@@ -229,9 +229,9 @@ func GetTaskByID(id int64) (*Task, error) {
 	return task, x.First(task, id).Error
 }
 
-func ListTasks() ([]*Task, error) {
+func ListTasks(page, pageSize int64) ([]*Task, error) {
 	tasks := make([]*Task, 0, 10)
-	return tasks, x.Order("id DESC").Find(&tasks).Error
+	return tasks, x.Limit(pageSize).Offset((page - 1) * pageSize).Order("id DESC").Find(&tasks).Error
 }
 
 func ListPendingTasks() ([]*Task, error) {
