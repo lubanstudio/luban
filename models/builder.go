@@ -21,7 +21,7 @@ import (
 
 	"github.com/Unknwon/com"
 
-	"github.com/lubanstudio/luban/modules/tool"
+	"github.com/lubanstudio/luban/pkg/tool"
 )
 
 type TrustLevel int

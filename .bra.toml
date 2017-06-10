@@ -6,8 +6,8 @@ init_cmds = [
 watch_all = true
 watch_dirs = [
 	"models",
-	"modules",
-	"routers"
+	"pkg",
+	"routes"
 ]
 watch_exts = [".go"]
 cmds = [

@@ -12,6 +12,9 @@
 	        <h3 class="box-title">Build Tasks</h3>
 	        <div class="box-tools">
 	        	<a class="btn btn-primary btn-sm" href="/tasks/new">New Task</a>
+          	{{if .User.IsAdmin}}
+              <a class="btn btn-primary btn-sm" href="/tasks/new_batch">New Batch Tasks</a>
+          	{{end}}
           </div>
 	      </div>
 	      <div class="box-body table-responsive no-padding">

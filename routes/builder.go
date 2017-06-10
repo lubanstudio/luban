@@ -12,14 +12,14 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-package routers
+package routes
 
 import (
 	"fmt"
 
 	"github.com/lubanstudio/luban/models"
-	"github.com/lubanstudio/luban/modules/context"
-	"github.com/lubanstudio/luban/modules/form"
+	"github.com/lubanstudio/luban/pkg/context"
+	"github.com/lubanstudio/luban/pkg/form"
 )
 
 func Builders(ctx *context.Context) {

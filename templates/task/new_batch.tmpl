@@ -1,0 +1,35 @@
+{{template "base/head" .}}
+<section class="content-header">
+	<h1>
+    <i class="fa fa-gg"></i> Build Tasks
+	</h1>
+</section>
+<section class="content">
+	<div class="row">
+	  <div class="col-xs-12">
+	  	<div class="box box-primary">
+        <div class="box-header with-border">
+          <h3 class="box-title">New Batch Tasks</h3>
+        </div>
+        <form method="POST">
+          <div class="box-body">
+          	{{template "base/alert" .}}
+            <div class="form-group {{if .Err_Branch}}has-error{{end}}">
+              <label for="branch">Branch</label>
+              <select class="form-control" name="branch" tabindex="-1" required>
+                {{range .AllowedBranches}}
+                  <option {{if eq . $.branch}}selected{{end}}>{{.}}</option>
+                {{end}}
+              </select>
+            </div>
+          </div>
+
+          <div class="box-footer">
+            <button type="submit" class="btn btn-primary">Create</button>
+          </div>
+        </form>
+      </div>
+	  </div>
+	</div>
+</section>
+{{template "base/footer" .}}

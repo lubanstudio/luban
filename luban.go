@@ -27,14 +27,14 @@ import (
 	"gopkg.in/macaron.v1"
 
 	"github.com/lubanstudio/luban/models"
-	"github.com/lubanstudio/luban/modules/context"
-	"github.com/lubanstudio/luban/modules/form"
-	"github.com/lubanstudio/luban/modules/setting"
-	"github.com/lubanstudio/luban/modules/template"
-	"github.com/lubanstudio/luban/routers"
+	"github.com/lubanstudio/luban/pkg/context"
+	"github.com/lubanstudio/luban/pkg/form"
+	"github.com/lubanstudio/luban/pkg/setting"
+	"github.com/lubanstudio/luban/pkg/template"
+	"github.com/lubanstudio/luban/routes"
 )
 
-const APP_VER = "0.5.11.0227"
+const APP_VER = "0.6.0.0610"
 
 func init() {
 	setting.AppVer = APP_VER
@@ -71,22 +71,18 @@ func main() {
 
 	m.Get("/", func(ctx *macaron.Context) { ctx.Redirect("/dashboard") })
 	m.Group("", func() {
-		m.Get("/dashboard", routers.Dashboard)
+		m.Get("/dashboard", routes.Dashboard)
 
 		m.Group("/tasks", func() {
-			m.Get("", routers.Tasks)
+			m.Get("", routes.Tasks)
 
 			m.Group("", func() {
-				m.Combo("/new", func(ctx *context.Context) {
-					ctx.Data["AllowedOSs"] = setting.AllowedOSs
-					ctx.Data["AllowedArchs"] = setting.AllowedArchs
-					ctx.Data["AllowedTags"] = setting.AllowedTags
-					ctx.Data["AllowedBranches"] = setting.Project.Branches
-				}).Get(routers.NewTask).Post(bindIgnErr(form.NewTask{}), routers.NewTaskPost)
+				m.Combo("/new").Get(routes.NewTask).Post(bindIgnErr(form.NewTask{}), routes.NewTaskPost)
+				m.Combo("/new_batch", context.ReqAdmin()).Get(routes.NewBatchTasks).Post(routes.NewBatchTasksPost)
 
 				m.Group("/:id", func() {
-					m.Get("", routers.ViewTask)
-					m.Get("/archive", context.ReqAdmin(), routers.ArchiveTask)
+					m.Get("", routes.ViewTask)
+					m.Get("/archive", context.ReqAdmin(), routes.ArchiveTask)
 				}, func(ctx *context.Context) {
 					task, err := models.GetTaskByID(ctx.ParamsInt64(":id"))
 					if err != nil {
@@ -103,18 +99,22 @@ func main() {
 			})
 		}, func(ctx *context.Context) {
 			ctx.Data["PageIsTask"] = true
+			ctx.Data["AllowedOSs"] = setting.AllowedOSs
+			ctx.Data["AllowedArchs"] = setting.AllowedArchs
+			ctx.Data["AllowedTags"] = setting.AllowedTags
+			ctx.Data["AllowedBranches"] = setting.Project.Branches
 		})
 
 		m.Group("/builders", func() {
-			m.Get("", routers.Builders)
+			m.Get("", routes.Builders)
 
 			m.Group("", func() {
-				m.Combo("/new").Get(routers.NewBuilder).Post(bindIgnErr(form.NewBuilder{}), routers.NewBuilderPost)
+				m.Combo("/new").Get(routes.NewBuilder).Post(bindIgnErr(form.NewBuilder{}), routes.NewBuilderPost)
 
 				m.Group("/:id", func() {
-					m.Combo("/edit").Get(routers.EditBuilder).Post(bindIgnErr(form.NewBuilder{}), routers.EditBuilderPost)
-					m.Post("/regenerate_token", routers.RegenerateBuilderToken)
-					m.Post("/delete", routers.DeleteBuilder)
+					m.Combo("/edit").Get(routes.EditBuilder).Post(bindIgnErr(form.NewBuilder{}), routes.EditBuilderPost)
+					m.Post("/regenerate_token", routes.RegenerateBuilderToken)
+					m.Post("/delete", routes.DeleteBuilder)
 				})
 			}, context.ReqAdmin())
 		}, func(ctx *context.Context) {
@@ -129,10 +129,10 @@ func main() {
 
 	m.Group("/api/v1", func() {
 		m.Group("/builder", func() {
-			m.Post("/matrix", routers.UpdateMatrix)
-			m.Post("/heartbeat", routers.HeartBeat)
-			m.Post("/upload/artifact", routers.UploadArtifact)
-		}, routers.RequireBuilderToken)
+			m.Post("/matrix", routes.UpdateMatrix)
+			m.Post("/heartbeat", routes.HeartBeat)
+			m.Post("/upload/artifact", routes.UploadArtifact)
+		}, routes.RequireBuilderToken)
 	})
 
 	m.NotFound(context.NotFound)

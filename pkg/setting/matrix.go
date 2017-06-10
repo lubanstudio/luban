@@ -35,7 +35,7 @@ type Matrix struct {
 	Tags  []string `json:"tags"`
 }
 
-func LoadMatrices() error {
+func loadMatrices() error {
 	data, err := ioutil.ReadFile("custom/matrices.json")
 	if err != nil {
 		return fmt.Errorf("ReadFile: %v", err)

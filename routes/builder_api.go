@@ -12,7 +12,7 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-package routers
+package routes
 
 import (
 	"encoding/json"
@@ -25,8 +25,8 @@ import (
 	log "gopkg.in/clog.v1"
 
 	"github.com/lubanstudio/luban/models"
-	"github.com/lubanstudio/luban/modules/context"
-	"github.com/lubanstudio/luban/modules/setting"
+	"github.com/lubanstudio/luban/pkg/context"
+	"github.com/lubanstudio/luban/pkg/setting"
 )
 
 func RequireBuilderToken(ctx *context.Context) {

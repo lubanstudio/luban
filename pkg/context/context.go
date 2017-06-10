@@ -24,7 +24,7 @@ import (
 	"gopkg.in/macaron.v1"
 
 	"github.com/lubanstudio/luban/models"
-	"github.com/lubanstudio/luban/modules/form"
+	"github.com/lubanstudio/luban/pkg/form"
 )
 
 type Context struct {

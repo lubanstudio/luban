@@ -94,14 +94,16 @@ func init() {
 	ArtifactsPath = Cfg.Section("").Key("ARTIFACTS_PATH").MustString("data/artifacts")
 
 	if err = Cfg.Section("database").MapTo(&Database); err != nil {
-		log.Fatal(4, "Fail to map section 'database': %s", err)
+		log.Fatal(4, "Fail to map section 'database': %v", err)
 	} else if err = Cfg.Section("oauth2").MapTo(&OAuth2); err != nil {
-		log.Fatal(4, "Fail to map section 'oauth2': %s", err)
+		log.Fatal(4, "Fail to map section 'oauth2': %v", err)
 	} else if err = Cfg.Section("project").MapTo(&Project); err != nil {
-		log.Fatal(4, "Fail to map section 'project': %s", err)
+		log.Fatal(4, "Fail to map section 'project': %v", err)
 	}
 
-	if err = LoadMatrices(); err != nil {
-		log.Fatal(4, "LoadMatrices: %s", err)
+	if err = loadMatrices(); err != nil {
+		log.Fatal(4, "loadMatrices: %v", err)
+	} else if err = loadBatchJobs(); err != nil {
+		log.Fatal(4, "loadBatchJobs: %v", err)
 	}
 }

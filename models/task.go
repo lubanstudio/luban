@@ -25,8 +25,8 @@ import (
 	"github.com/Unknwon/com"
 	log "gopkg.in/clog.v1"
 
-	"github.com/lubanstudio/luban/modules/setting"
-	"github.com/lubanstudio/luban/modules/tool"
+	"github.com/lubanstudio/luban/pkg/setting"
+	"github.com/lubanstudio/luban/pkg/tool"
 )
 
 type TaskStatus int
@@ -179,6 +179,19 @@ func (t *Task) Archive() error {
 	return nil
 }
 
+func GetCommitOfBranch(branch string) (string, error) {
+	fmt.Println("git", "ls-remote", setting.Project.CloneURL, branch)
+	// Get latest commit ID on given branch.
+	stdout, stderr, err := com.ExecCmd("git", "ls-remote", setting.Project.CloneURL, branch)
+	if err != nil {
+		return "", fmt.Errorf("get latest commit of branch '%s': %v - %s", branch, err, stderr)
+	}
+	if len(stdout) < 40 {
+		return "", fmt.Errorf("not enough length of commit ID: %s", stdout)
+	}
+	return stdout[:40], nil
+}
+
 func NewTask(doerID int64, os, arch string, tags []string, branch string) (*Task, error) {
 	sort.Strings(tags)
 
@@ -194,18 +207,12 @@ func NewTask(doerID int64, os, arch string, tags []string, branch string) (*Task
 		return nil, ErrNoSuitableMatrix{os, arch, tags}
 	}
 
-	fmt.Println("git", "ls-remote", setting.Project.CloneURL, branch)
-	// Get latest commit ID on given branch.
-	stdout, stderr, err := com.ExecCmd("git", "ls-remote", setting.Project.CloneURL, branch)
+	commit, err := GetCommitOfBranch(branch)
 	if err != nil {
-		return nil, fmt.Errorf("get latest commit of branch '%s': %v - %s", branch, err, stderr)
+		return nil, fmt.Errorf("GetCommitOfBranch: %v", err)
 	}
-	if len(stdout) < 40 {
-		return nil, fmt.Errorf("not enough length of commit ID: %s", stdout)
-	}
-	commit := stdout[:40]
 
-	// Check to prevent duplicated tasks.
+	// Check to prevent duplicated tasks
 	task := new(Task)
 	if err = x.Where("os=? AND arch=? AND tags=? AND commit=? AND status!=? AND status!=?",
 		os, arch, strings.Join(tags, ","), commit, TASK_STATUS_FAILED, TASK_STATUS_ARCHIVED).First(task).Error; err == nil {
@@ -222,6 +229,37 @@ func NewTask(doerID int64, os, arch string, tags []string, branch string) (*Task
 		PosterID: doerID,
 	}
 	return task, x.Create(task).Error
+}
+
+func NewBatchTasks(doerID int64, branch string) error {
+	commit, err := GetCommitOfBranch(branch)
+	if err != nil {
+		return fmt.Errorf("GetCommitOfBranch: %v", err)
+	}
+
+	// Check to prevent duplicated tasks
+	for _, t := range setting.BatchTasks {
+		task := new(Task)
+		if err = x.Where("os=? AND arch=? AND tags=? AND commit=? AND status!=? AND status!=?",
+			t.OS, t.Arch, strings.Join(t.Tags, ","), commit, TASK_STATUS_FAILED, TASK_STATUS_ARCHIVED).First(task).Error; err != nil {
+			if !IsErrRecordNotFound(err) {
+				return fmt.Errorf("check existing task: %v", err)
+			}
+		}
+
+		task = &Task{
+			OS:       t.OS,
+			Arch:     t.Arch,
+			Tags:     strings.Join(t.Tags, ","),
+			Commit:   commit,
+			PosterID: doerID,
+		}
+		if err = x.Create(task).Error; err != nil {
+			return fmt.Errorf("create new task: %v", err)
+		}
+	}
+
+	return nil
 }
 
 func GetTaskByID(id int64) (*Task, error) {

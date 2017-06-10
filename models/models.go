@@ -21,7 +21,7 @@ import (
 	"github.com/jinzhu/gorm"
 	log "gopkg.in/clog.v1"
 
-	"github.com/lubanstudio/luban/modules/setting"
+	"github.com/lubanstudio/luban/pkg/setting"
 )
 
 var x *gorm.DB
